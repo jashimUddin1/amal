@@ -1,4 +1,4 @@
-<?php
+<?php //add_core.php
 require_once 'config.php';
 checkAuth();
 

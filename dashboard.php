@@ -1,4 +1,4 @@
-<?php
+<?php //dashboard.php
 require_once 'config.php';
 checkAuth();
 
@@ -34,20 +34,32 @@ $processed_data = [];
 
 foreach ($daily_records as $record) {$durations_array = explode('||', $record['durations']);$day_seconds = 0;
 
-    foreach ($durations_array as $duration_str) {$duration_str = strtolower(trim($duration_str));$mins = 0;
+    foreach ($durations_array as $duration_str) {$duration_str = strtolower(trim($duration_str));$hrs = 0;
+        $mins = 0;
         $secs = 0;
 
-        if (preg_match('/(\d+)\s*min/', $duration_str,$m_match)) {
+        // Hour (h, hr, hour) check
+        if (preg_match('/(\d+)\s*(?:hour|hr|h)/', $duration_str,$h_match)) {
+            $hrs = (int)$h_match[1];
+        }
+
+        // Minute (min, minute, m) check
+        if (preg_match('/(\d+)\s*(?:minute|min|m)/', $duration_str,$m_match)) {
             $mins = (int)$m_match[1];
         }
-        if (preg_match('/(\d+)\s*sec/', $duration_str,$s_match)) {
+
+        // Second (sec, second, s) check
+        if (preg_match('/(\d+)\s*(?:second|sec|s)/', $duration_str,$s_match)) {
             $secs = (int)$s_match[1];
         }
-        if ($mins == 0 && $secs == 0 && is_numeric($duration_str)) {
+
+        // Fallback for raw numbers without unit
+        if ($hrs == 0 &&$mins == 0 && $secs == 0 && is_numeric($duration_str)) {
             $mins = (int)$duration_str;
         }
 
-        $day_seconds += ($mins * 60) +$secs;
+        // Calculate total seconds for this single entry
+        $day_seconds += ($hrs * 3600) + ($mins * 60) +$secs;
     }
 
     $grand_total_seconds +=$day_seconds;

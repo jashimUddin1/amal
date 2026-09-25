@@ -1,4 +1,4 @@
-<?php
+<?php //profile.php
 require_once 'config.php';
 checkAuth();
 

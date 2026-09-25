@@ -1,4 +1,4 @@
-<?php
+<?php //get_daily_details.php
 require_once 'config.php';
 checkAuth();
 
