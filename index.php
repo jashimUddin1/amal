@@ -130,6 +130,7 @@ $remaining_or_extra = $today_total_minutes - $daily_target_minutes;
 
             <div class="hidden sm:flex items-center gap-4 text-sm font-medium">
                 <a href="index.php" class="hover:text-emerald-200 transition font-bold"><?php echo $lang === 'bn' ? 'হোম' : 'Home'; ?></a>
+                <a href="daily_amal.php" class="hover:text-emerald-200 transition font-bold"><?php echo $lang === 'bn' ? 'ডেইলি আমল' : 'Daily Amal'; ?></a>
                 <a href="dashboard.php" class="hover:text-emerald-200 transition"><?php echo $lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'; ?></a>
                 <a href="profile.php" class="hover:text-emerald-200 transition">
                     <span class="bg-emerald-700 px-3 py-1 rounded-full text-xs font-semibold"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
@@ -140,6 +141,7 @@ $remaining_or_extra = $today_total_minutes - $daily_target_minutes;
 
         <div id="mobileMenu" class="hidden sm:hidden bg-emerald-700 px-4 pt-2 pb-4 space-y-2 border-t border-emerald-500">
             <a href="index.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium"><?php echo $lang === 'bn' ? 'হোম / আজকের আমল' : 'Home / Today\'s Amal'; ?></a>
+            <a href="daily_amal.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium"><?php echo $lang === 'bn' ? 'ডেইলি আমল' : 'Daily Amal'; ?></a>
             <a href="dashboard.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium"><?php echo $lang === 'bn' ? 'ড্যাশবোর্ড (মাসিক হিসাব)' : 'Dashboard (Monthly Summary)'; ?></a>
             <a href="profile.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium"><?php echo $lang === 'bn' ? 'প্রোফাইল সেটিং' : 'Profile Settings'; ?></a>
             <div class="pt-2 border-t border-emerald-600 flex justify-between items-center">
