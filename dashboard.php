@@ -2,16 +2,16 @@
 require_once 'config.php';
 checkAuth();
 
-$user_id =$_SESSION['user_id'];
+$user_id = $_SESSION['user_id'];
 
 // 1. User Language fetch kora
-$user_stmt =$pdo->prepare("SELECT language FROM users WHERE id = ?");
+$user_stmt = $pdo->prepare("SELECT language FROM users WHERE id = ?");
 $user_stmt->execute([$user_id]);
-$user_info =$user_stmt->fetch(PDO::FETCH_ASSOC);
-$lang =$user_info['language'] ?? 'bn';
+$user_info = $user_stmt->fetch(PDO::FETCH_ASSOC);
+$lang = $user_info['language'] ?? 'bn';
 
 // Monthly or overall records grouped by date
-$stmt =$pdo->prepare("
+$stmt = $pdo->prepare("
     SELECT 
         amal_date,
         COUNT(id) as total_amals,
@@ -22,7 +22,7 @@ $stmt =$pdo->prepare("
     ORDER BY amal_date DESC
 ");
 $stmt->execute([$user_id]);
-$daily_records =$stmt->fetchAll();
+$daily_records = $stmt->fetchAll();
 
 // Grand Total Calculation Variables
 $grand_total_seconds = 0;
@@ -32,51 +32,58 @@ $total_days_count = count($daily_records);
 // Process daily summary
 $processed_data = [];
 
-foreach ($daily_records as $record) {$durations_array = explode('||', $record['durations']);$day_seconds = 0;
+foreach ($daily_records as $record) {
+    $durations_array = explode('||', $record['durations']);
+    $day_seconds = 0;
 
-    foreach ($durations_array as $duration_str) {$duration_str = strtolower(trim($duration_str));$hrs = 0;
+    foreach ($durations_array as $duration_str) {
+        $duration_str = strtolower(trim($duration_str));
+        $hrs = 0;
         $mins = 0;
         $secs = 0;
 
         // Hour (h, hr, hour) check
-        if (preg_match('/(\d+)\s*(?:hour|hr|h)/', $duration_str,$h_match)) {
+        if (preg_match('/(\d+)\s*(?:hour|hr|h)/', $duration_str, $h_match)) {
             $hrs = (int)$h_match[1];
         }
 
         // Minute (min, minute, m) check
-        if (preg_match('/(\d+)\s*(?:minute|min|m)/', $duration_str,$m_match)) {
+        if (preg_match('/(\d+)\s*(?:minute|min|m)/', $duration_str, $m_match)) {
             $mins = (int)$m_match[1];
         }
 
         // Second (sec, second, s) check
-        if (preg_match('/(\d+)\s*(?:second|sec|s)/', $duration_str,$s_match)) {
+        if (preg_match('/(\d+)\s*(?:second|sec|s)/', $duration_str, $s_match)) {
             $secs = (int)$s_match[1];
         }
 
         // Fallback for raw numbers without unit
-        if ($hrs == 0 &&$mins == 0 && $secs == 0 && is_numeric($duration_str)) {
+        if ($hrs == 0 && $mins == 0 && $secs == 0 && is_numeric($duration_str)) {
             $mins = (int)$duration_str;
         }
 
         // Calculate total seconds for this single entry
-        $day_seconds += ($hrs * 3600) + ($mins * 60) +$secs;
+        $day_seconds += ($hrs * 3600) + ($mins * 60) + $secs;
     }
 
-    $grand_total_seconds +=$day_seconds;
-    $grand_total_amals +=$record['total_amals'];
+    $grand_total_seconds += $day_seconds;
+    $grand_total_amals += $record['total_amals'];
 
     // Format daily duration cleanly using Array
     $d_hours = floor($day_seconds / 3600);
-    $d_rem_secs =$day_seconds % 3600;
+    $d_rem_secs = $day_seconds % 3600;
     $d_mins = floor($d_rem_secs / 60);
-    $d_secs =$d_rem_secs % 60;
+    $d_secs = $d_rem_secs % 60;
 
     $parts = [];
-    if ($d_hours > 0) {$parts[] = $d_hours . ($lang === 'bn' ? " ঘণ্টা" : " Hour");
+    if ($d_hours > 0) {
+        $parts[] = $d_hours . ($lang === 'bn' ? " ঘণ্টা" : " Hour");
     }
-    if ($d_mins > 0) {$parts[] = $d_mins . ($lang === 'bn' ? " মিনিট" : " Min");
+    if ($d_mins > 0) {
+        $parts[] = $d_mins . ($lang === 'bn' ? " মিনিট" : " Min");
     }
-    if ($d_secs > 0 || empty($parts)) {$parts[] = $d_secs . ($lang === 'bn' ? " সেকেণ্ড" : " Sec");
+    if ($d_secs > 0 || empty($parts)) {
+        $parts[] = $d_secs . ($lang === 'bn' ? " সেকেণ্ড" : " Sec");
     }
     $daily_formatted = implode(" ", $parts);
 
@@ -88,36 +95,42 @@ foreach ($daily_records as $record) {$durations_array = explode('||', $record['d
 }
 
 // Grand Total Formatting Function
-function formatSecondsToReadable(int $total_seconds, string$lang): string {
+function formatSecondsToReadable(int $total_seconds, string $lang): string
+{
     $hours = floor($total_seconds / 3600);
-    $rem_secs =$total_seconds % 3600;
+    $rem_secs = $total_seconds % 3600;
     $minutes = floor($rem_secs / 60);
-    $seconds =$rem_secs % 60;
+    $seconds = $rem_secs % 60;
 
     $parts = [];
-    if ($hours > 0) {$parts[] = $hours . ($lang === 'bn' ? " ঘণ্টা" : " Hour");
+    if ($hours > 0) {
+        $parts[] = $hours . ($lang === 'bn' ? " ঘণ্টা" : " Hour");
     }
-    if ($minutes > 0) {$parts[] = $minutes . ($lang === 'bn' ? " মিনিট" : " Min");
+    if ($minutes > 0) {
+        $parts[] = $minutes . ($lang === 'bn' ? " মিনিট" : " Min");
     }
-    if ($seconds > 0 || empty($parts)) {$parts[] = $seconds . ($lang === 'bn' ? " সেকেণ্ড" : " Sec");
+    if ($seconds > 0 || empty($parts)) {
+        $parts[] = $seconds . ($lang === 'bn' ? " সেকেণ্ড" : " Sec");
     }
 
     return implode(" ", $parts);
 }
 
-$grand_total_duration_str = formatSecondsToReadable($grand_total_seconds,$lang);
+$grand_total_duration_str = formatSecondsToReadable($grand_total_seconds, $lang);
 
 // Average Daily Time Calculation
 $avg_seconds_per_day = ($total_days_count > 0) ? floor($grand_total_seconds / $total_days_count) : 0;
-$avg_duration_str = formatSecondsToReadable($avg_seconds_per_day,$lang);
+$avg_duration_str = formatSecondsToReadable($avg_seconds_per_day, $lang);
 
-function windowDateFormatter(string $date_str): string {
+function windowDateFormatter(string $date_str): string
+{
     return date('d M Y, D', strtotime($date_str));
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars($lang); ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -125,13 +138,14 @@ function windowDateFormatter(string $date_str): string {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body class="bg-gray-100 min-h-screen antialiased text-gray-800">
 
     <!-- Responsive Navigation Header -->
     <nav class="bg-emerald-600 text-white shadow-md sticky top-0 z-40">
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
             <a href="index.php" class="text-lg font-bold tracking-wide">Amal Tracker</a>
-            
+
             <button id="mobileMenuBtn" class="sm:hidden p-2 text-white focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -140,6 +154,7 @@ function windowDateFormatter(string $date_str): string {
 
             <div class="hidden sm:flex items-center gap-4 text-sm font-medium">
                 <a href="index.php" class="hover:text-emerald-200 transition">Home</a>
+                <a href="daily_amal.php" class="hover:text-emerald-200 transition font-bold"><?php echo $lang === 'bn' ? 'ডেইলি আমল' : 'Daily Amal'; ?></a>
                 <a href="dashboard.php" class="hover:text-emerald-200 transition font-bold border-b-2 border-white pb-0.5">Dashboard</a>
                 <a href="profile.php" class="hover:text-emerald-200 transition">
                     <span class="bg-emerald-700 px-3 py-1 rounded-full text-xs font-semibold"><?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
@@ -150,6 +165,7 @@ function windowDateFormatter(string $date_str): string {
 
         <div id="mobileMenu" class="hidden sm:hidden bg-emerald-700 px-4 pt-2 pb-4 space-y-2 border-t border-emerald-500">
             <a href="index.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium">Home / Ajker Amal</a>
+            <a href="daily_amal.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium"><?php echo $lang === 'bn' ? 'ডেইলি আমল' : 'Daily Amal'; ?></a>
             <a href="dashboard.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium">Dashboard (Masik Hisab)</a>
             <a href="profile.php" class="block py-1.5 px-3 rounded hover:bg-emerald-800 font-medium">Profile Settings</a>
             <div class="pt-2 border-t border-emerald-600 flex justify-between items-center">
@@ -167,7 +183,7 @@ function windowDateFormatter(string $date_str): string {
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-wider"><?php echo $lang === 'bn' ? 'মোট দিন' : 'Total Days'; ?></p>
-                    <h3 class="text-2xl font-black text-emerald-600 mt-1"><?php echo $total_days_count; ?> <?php echo$lang === 'bn' ? 'দিন' : 'Days'; ?></h3>
+                    <h3 class="text-2xl font-black text-emerald-600 mt-1"><?php echo $total_days_count; ?> <?php echo $lang === 'bn' ? 'দিন' : 'Days'; ?></h3>
                 </div>
                 <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +195,7 @@ function windowDateFormatter(string $date_str): string {
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-wider"><?php echo $lang === 'bn' ? 'মোট আমল' : 'Total Amals'; ?></p>
-                    <h3 class="text-2xl font-black text-blue-600 mt-1"><?php echo $grand_total_amals; ?> <?php echo$lang === 'bn' ? 'টি' : ''; ?></h3>
+                    <h3 class="text-2xl font-black text-blue-600 mt-1"><?php echo $grand_total_amals; ?> <?php echo $lang === 'bn' ? 'টি' : ''; ?></h3>
                 </div>
                 <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +226,7 @@ function windowDateFormatter(string $date_str): string {
             <!-- Mobile View: Responsive Cards -->
             <div class="block sm:hidden space-y-3">
                 <?php if (count($processed_data) > 0): ?>
-                    <?php foreach ($processed_data as$data): ?>
+                    <?php foreach ($processed_data as $data): ?>
                         <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-center gap-3">
                             <div class="space-y-1">
                                 <p class="font-bold text-gray-900 text-sm">
@@ -250,14 +266,14 @@ function windowDateFormatter(string $date_str): string {
                     </thead>
                     <tbody class="divide-y divide-gray-100 text-sm">
                         <?php if (count($processed_data) > 0): ?>
-                            <?php foreach ($processed_data as$data): ?>
+                            <?php foreach ($processed_data as $data): ?>
                                 <tr class="hover:bg-gray-50">
                                     <td class="p-3 font-semibold text-gray-800">
                                         <?php echo windowDateFormatter($data['amal_date']); ?>
                                     </td>
                                     <td class="p-3">
                                         <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-medium">
-                                            <?php echo $data['total_amals']; ?> <?php echo$lang === 'bn' ? 'টি' : ''; ?>
+                                            <?php echo $data['total_amals']; ?> <?php echo $lang === 'bn' ? 'টি' : ''; ?>
                                         </span>
                                     </td>
                                     <td class="p-3 font-medium text-blue-600">
@@ -292,7 +308,7 @@ function windowDateFormatter(string $date_str): string {
             <div class="space-y-2 text-sm sm:text-base leading-relaxed text-emerald-100">
                 <?php if ($lang === 'bn'): ?>
                     <p>
-                        আপনি গত <span class="font-extrabold text-white underline decoration-emerald-400 decoration-2"><?php echo $total_days_count; ?> দিনে</span> 
+                        আপনি গত <span class="font-extrabold text-white underline decoration-emerald-400 decoration-2"><?php echo $total_days_count; ?> দিনে</span>
                         সর্বমোট <span class="font-extrabold text-amber-300"><?php echo $grand_total_duration_str; ?></span> আমল করেছেন।
                     </p>
                     <p>
@@ -300,7 +316,7 @@ function windowDateFormatter(string $date_str): string {
                     </p>
                 <?php else: ?>
                     <p>
-                        In the last <span class="font-extrabold text-white underline decoration-emerald-400 decoration-2"><?php echo $total_days_count; ?> days</span>, 
+                        In the last <span class="font-extrabold text-white underline decoration-emerald-400 decoration-2"><?php echo $total_days_count; ?> days</span>,
                         you have performed total <span class="font-extrabold text-amber-300"><?php echo $grand_total_duration_str; ?></span> of amals.
                     </p>
                     <p>
@@ -345,8 +361,10 @@ function windowDateFormatter(string $date_str): string {
             });
 
             // Open Pop-up Detail Modal
+            // Open Pop-up Detail Modal
             $('.viewDetailBtn').on('click', function() {
-                let dateStr = $(this).data('date');$('#modalDateTitle').text((userLang === 'bn' ? 'তারিখ: ' : 'Date: ') + dateStr);
+                let dateStr = $(this).data('date');
+                $('#modalDateTitle').text((userLang === 'bn' ? 'তারিখ: ' : 'Date: ') + dateStr);
                 $('#modalContent').html('<p class="text-center text-gray-500 py-6">' + (userLang === 'bn' ? 'ডাটা লোড হচ্ছে...' : 'Loading data...') + '</p>');
                 $('#detailModal').removeClass('hidden').addClass('flex');
 
@@ -357,20 +375,74 @@ function windowDateFormatter(string $date_str): string {
                     success: function(response) {
                         if (response.status === 'success') {
                             let html = '<div class="space-y-3">';
+
                             $.each(response.data, function(index, item) {
                                 html += `
-                                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                        <div class="flex justify-between items-start mb-1">
-                                            <h4 class="font-bold text-gray-800 text-base">${item.amal_name}</h4>
-                                            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">${item.duration_time}</span>
-                                        </div>
-                                        <div class="text-xs text-gray-500 flex justify-between">
-                                            <span>${userLang === 'bn' ? 'সময়সীমা: ' : 'Time Range: '}${item.time_range}</span>
-                                        </div>
-                                    </div>
-                                `;
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="font-bold text-gray-800 text-base">${item.amal_name}</h4>
+                                <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">${item.duration_time}</span>
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                <span>${userLang === 'bn' ? 'সময়সীমা: ' : 'Time Range: '}${item.time_range}</span>
+                            </div>
+                        </div>
+                    `;
                             });
+
                             html += '</div>';
+
+                            // Target Comparison Logic
+                            let totalMins = response.total_minutes;
+                            let targetMins = response.target_minutes;
+                            let diffMins = totalMins - targetMins;
+
+                            let targetBadge = '';
+                            if (diffMins < 0) {
+                                // Target er চেয়ে কম (Warning / Yellow-Orange)
+                                let absDiff = Math.abs(diffMins);
+                                let label = userLang === 'bn' ? `টার্গেট থেকে ${absDiff} মি. কম` : `${absDiff} min short`;
+                                targetBadge = `<span class="text-xs font-bold text-amber-800 bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg inline-flex items-center gap-1">
+                        ⚠️ ${label}
+                    </span>`;
+                            } else if (diffMins === 0) {
+                                // Target এর সমান (Mute / Gray)
+                                let label = userLang === 'bn' ? `টার্গেট সঠিকভাবে পূর্ণ` : `Target Filfilled`;
+                                targetBadge = `<span class="text-xs font-bold text-slate-700 bg-slate-100 border border-slate-300 px-3 py-1.5 rounded-lg inline-flex items-center gap-1">
+                        🎯 ${label}
+                    </span>`;
+                            } else {
+                                // Target er চেয়ে বেশি (Green / Success)
+                                let label = userLang === 'bn' ? `টার্গেট থেকে ${diffMins} মি. বেশি` : `${diffMins} min extra`;
+                                targetBadge = `<span class="text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg inline-flex items-center gap-1">
+                        🚀 ${label}
+                    </span>`;
+                            }
+
+                            // Total Time Formatting
+                            let totalText = '';
+                            if (userLang === 'bn') {
+                                let hourPart = response.hours > 0 ? `${response.hours} ঘণ্টা ` : '';
+                                totalText = `(${response.total_minutes} মিনিট) ${hourPart}${response.rem_minutes} মিনিট`;
+                            } else {
+                                let hourPart = response.hours > 0 ? `${response.hours} hour ` : '';
+                                totalText = `(${response.total_minutes} min) ${hourPart}${response.rem_minutes} min`;
+                            }
+
+                            // Footer Row: Left (Target Badge) + Right (Total Time)
+                            html += `
+                    <div class="mt-4 pt-3 border-t border-gray-200 flex flex-wrap justify-between items-center gap-2">
+                        <div>
+                            ${targetBadge}
+                        </div>
+                        <div>
+                            <span class="text-sm font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg inline-block">
+                                ${totalText}
+                            </span>
+                        </div>
+                    </div>
+                `;
+
                             $('#modalContent').html(html);
                         } else {
                             $('#modalContent').html('<p class="text-center text-red-500 py-4">' + response.message + '</p>');
@@ -389,4 +461,5 @@ function windowDateFormatter(string $date_str): string {
         });
     </script>
 </body>
+
 </html>
